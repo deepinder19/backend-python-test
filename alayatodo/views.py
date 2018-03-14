@@ -76,10 +76,14 @@ def todos_POST():
 
 
 @app.route('/todo/<id>', methods=['POST'])
-def todo_delete(id):
+def todo_POST(id):
     if not session.get('logged_in'):
         return redirect('/login')
     todo = Todos.query.filter_by(id=id).first()
-    db.session.delete(todo)
-    db.session.commit()
+    if request.form.get('action') == 'remove':
+        db.session.delete(todo)
+        db.session.commit()
+    elif request.form.get('action') == 'complete':
+        todo.is_complete = True
+        db.session.commit()
     return redirect('/todo')

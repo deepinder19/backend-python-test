@@ -24,3 +24,4 @@ class Todos(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     description = db.Column(db.String(255))
+    is_complete = db.Column(db.Boolean, default=False)
