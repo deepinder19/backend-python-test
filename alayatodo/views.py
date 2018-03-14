@@ -3,7 +3,8 @@ from flask import (
     redirect,
     render_template,
     request,
-    session
+    session,
+    jsonify
     )
 from models import User, Todos, db
 
@@ -44,6 +45,14 @@ def logout():
 def todo(id):
     todo = Todos.query.filter_by(id=id).first()
     return render_template('todo.html', todo=todo)
+
+
+@app.route('/todo/<id>/json', methods=['GET'])
+def todo_json(id):
+    todo = Todos.query.filter_by(id=id).first()
+    return jsonify(id=todo.id,
+                   user_id=todo.user_id,
+                   description=todo.description)
 
 
 @app.route('/todo', methods=['GET'])
