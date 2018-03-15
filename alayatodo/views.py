@@ -1,3 +1,8 @@
+"""
+This module defines the view of the app. All the endpoint routes are
+defined in this module.
+"""
+
 from alayatodo import app
 from flask import (
     redirect,
@@ -10,9 +15,14 @@ from flask import (
 from models import User, Todos, db
 from utilities import login_required
 
+PER_PAGE = 5
+
 
 @app.route('/')
 def home():
+    """
+    Function to get information on the landing page.
+    """
     with app.open_resource('../README.md', mode='r') as f:
         readme = "".join(l.decode('utf-8') for l in f)
         return render_template('index.html', readme=readme)
@@ -20,24 +30,34 @@ def home():
 
 @app.route('/login', methods=['GET'])
 def login():
+    """
+    This function takes user to the login page.
+    """
     return render_template('login.html')
 
 
 @app.route('/login', methods=['POST'])
 def login_POST():
+    """
+    This function implements login for the user
+    """
     username = request.form.get('username')
     password = request.form.get('password')
     user = User.query.filter_by(username=username, password=password).first()
     if user:
-        # password not added to session variable
+        # Security issue: password removed from session variable
         session['user'] = {'username': user.username, 'id': user.id}
         session['logged_in'] = True
         return redirect('/todo/')
+    flash('Incorrect username or password', 'error')
     return redirect('/login')
 
 
 @app.route('/logout')
 def logout():
+    """
+    This function provides logout to the user
+    """
     session.pop('logged_in', None)
     session.pop('user', None)
     return redirect('/')
@@ -46,6 +66,14 @@ def logout():
 @app.route('/todo/<id>/', methods=['GET'])
 @login_required
 def todo(id):
+    """
+    Get all details of a todo by id
+
+    Attributes
+    ----------
+    id : int
+        Unique id of a todo
+    """
     todo = Todos.query.filter_by(id=id, user_id=session['user']['id']).first_or_404()
     return render_template('todo.html', todo=todo)
 
@@ -53,6 +81,14 @@ def todo(id):
 @app.route('/todo/<id>/json', methods=['GET'])
 @login_required
 def todo_json(id):
+    """
+    Get JSON format details of a todo by id
+    
+    Attributes
+    ----------
+    id : int
+        Unique id of a todo
+    """
     todo = Todos.query.filter_by(id=id, user_id=session['user']['id']).first_or_404()
     return jsonify(id=todo.id,
                 user_id=todo.user_id,
@@ -63,13 +99,25 @@ def todo_json(id):
 @app.route('/todo/page/<int:page_num>', methods=['GET'])
 @login_required
 def todos(page_num):
-    todos = Todos.query.filter_by(user_id=session['user']['id']).paginate(per_page=5, page=page_num, error_out=True)
+    """
+    Get list of all todos for the user in paginated form
+    
+    Attributes
+    ----------
+    pagenum : int
+        Page number for paginated data
+    """
+    todos = Todos.query.filter_by(user_id=session['user']['id']).paginate( \
+                        per_page=PER_PAGE, page=page_num, error_out=True)
     return render_template('todos.html', todos=todos)
 
 
 @app.route('/todo/', methods=['POST'])
 @login_required
 def todos_POST():
+    """
+    Function to add a new todo to the list
+    """
     desc = request.form.get('description')
     if desc:
         todo = Todos(user_id=session['user']['id'], description=desc)
@@ -84,6 +132,14 @@ def todos_POST():
 @app.route('/todo/<id>', methods=['POST'])
 @login_required
 def todo_POST(id):
+    """
+    Function to update, delete a todo from the list
+    
+    Attributes
+    ----------
+    id : int
+        Unique id of a todo
+    """
     todo = Todos.query.filter_by(id=id).first()
     if request.form.get('action') == 'remove':
         db.session.delete(todo)

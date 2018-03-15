@@ -1,4 +1,8 @@
-from flask import Flask
+"""
+This module provides object relational mapper and 
+implements models using flask sqlalchemy. 
+"""
+
 from flask_sqlalchemy import SQLAlchemy
 from alayatodo import app
 
@@ -6,6 +10,10 @@ db = SQLAlchemy(app)
 
 
 class User(db.Model):
+    """
+    This class represnts the user. Authentication is based on 
+    user object.
+    """
     
     __tablename__ = 'users'
     
@@ -18,6 +26,9 @@ class User(db.Model):
 
 
 class Todos(db.Model):
+    """
+    This class represents a todo, with a reference to the user table
+    """
     
     __tablename__ = 'todos'
     
