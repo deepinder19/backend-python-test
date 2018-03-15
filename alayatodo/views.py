@@ -4,7 +4,8 @@ from flask import (
     render_template,
     request,
     session,
-    jsonify
+    jsonify,
+    flash
     )
 from models import User, Todos, db
 from utilities import login_required
@@ -75,6 +76,9 @@ def todos_POST():
         todo = Todos(user_id=session['user']['id'], description=desc)
         db.session.add(todo)
         db.session.commit()
+        flash('Todo added successfully!')
+    else:
+        flash('Description can not be empty!', 'error')
     return redirect('/todo')
 
 
@@ -85,7 +89,9 @@ def todo_POST(id):
     if request.form.get('action') == 'remove':
         db.session.delete(todo)
         db.session.commit()
+        flash('Todo deleted successfully!')
     elif request.form.get('action') == 'complete':
         todo.is_complete = True
         db.session.commit()
+        flash('Todo marked as Completed!')
     return redirect('/todo')
