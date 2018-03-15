@@ -69,9 +69,11 @@ def todos():
 def todos_POST():
     if not session.get('logged_in'):
         return redirect('/login')
-    todo = Todos(user_id=session['user']['id'], description=request.form.get('description', ''))
-    db.session.add(todo)
-    db.session.commit()
+    desc = request.form.get('description')
+    if desc:
+        todo = Todos(user_id=session['user']['id'], description=desc)
+        db.session.add(todo)
+        db.session.commit()
     return redirect('/todo')
 
 
