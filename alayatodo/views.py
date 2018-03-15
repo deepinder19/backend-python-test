@@ -32,7 +32,7 @@ def login_POST():
         # password not added to session variable
         session['user'] = {'username': user.username, 'id': user.id}
         session['logged_in'] = True
-        return redirect('/todo')
+        return redirect('/todo/')
     return redirect('/login')
 
 
@@ -43,7 +43,7 @@ def logout():
     return redirect('/')
 
 
-@app.route('/todo/<id>', methods=['GET'])
+@app.route('/todo/<id>/', methods=['GET'])
 @login_required
 def todo(id):
     todo = Todos.query.filter_by(id=id, user_id=session['user']['id']).first_or_404()
@@ -59,15 +59,14 @@ def todo_json(id):
                 description=todo.description)
 
 
-@app.route('/todo', methods=['GET'])
-@app.route('/todo/', methods=['GET'])
+@app.route('/todo/', defaults={'page_num': 1}, methods=['GET'])
+@app.route('/todo/page/<int:page_num>', methods=['GET'])
 @login_required
-def todos():
-    todos = Todos.query.filter_by(user_id=session['user']['id'])
+def todos(page_num):
+    todos = Todos.query.filter_by(user_id=session['user']['id']).paginate(per_page=5, page=page_num, error_out=True)
     return render_template('todos.html', todos=todos)
 
 
-@app.route('/todo', methods=['POST'])
 @app.route('/todo/', methods=['POST'])
 @login_required
 def todos_POST():
