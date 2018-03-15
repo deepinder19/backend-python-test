@@ -7,6 +7,7 @@ from flask import (
     jsonify
     )
 from models import User, Todos, db
+from utilities import login_required
 
 
 @app.route('/')
@@ -42,33 +43,33 @@ def logout():
 
 
 @app.route('/todo/<id>', methods=['GET'])
+@login_required
 def todo(id):
-    todo = Todos.query.filter_by(id=id).first()
+    todo = Todos.query.filter_by(id=id, user_id=session['user']['id']).first_or_404()
     return render_template('todo.html', todo=todo)
 
 
 @app.route('/todo/<id>/json', methods=['GET'])
+@login_required
 def todo_json(id):
-    todo = Todos.query.filter_by(id=id).first()
+    todo = Todos.query.filter_by(id=id, user_id=session['user']['id']).first_or_404()
     return jsonify(id=todo.id,
-                   user_id=todo.user_id,
-                   description=todo.description)
+                user_id=todo.user_id,
+                description=todo.description)
 
 
 @app.route('/todo', methods=['GET'])
 @app.route('/todo/', methods=['GET'])
+@login_required
 def todos():
-    if not session.get('logged_in'):
-        return redirect('/login')
-    todos = Todos.query.filter_by()
+    todos = Todos.query.filter_by(user_id=session['user']['id'])
     return render_template('todos.html', todos=todos)
 
 
 @app.route('/todo', methods=['POST'])
 @app.route('/todo/', methods=['POST'])
+@login_required
 def todos_POST():
-    if not session.get('logged_in'):
-        return redirect('/login')
     desc = request.form.get('description')
     if desc:
         todo = Todos(user_id=session['user']['id'], description=desc)
@@ -78,9 +79,8 @@ def todos_POST():
 
 
 @app.route('/todo/<id>', methods=['POST'])
+@login_required
 def todo_POST(id):
-    if not session.get('logged_in'):
-        return redirect('/login')
     todo = Todos.query.filter_by(id=id).first()
     if request.form.get('action') == 'remove':
         db.session.delete(todo)
