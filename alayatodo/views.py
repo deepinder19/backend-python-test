@@ -16,6 +16,7 @@ from models import User, Todos, db
 from utilities import login_required
 
 PER_PAGE = 5
+HTTP_NOT_FOUND = 404
 
 
 @app.route('/')
@@ -89,10 +90,13 @@ def todo_json(id):
     id : int
         Unique id of a todo
     """
-    todo = Todos.query.filter_by(id=id, user_id=session['user']['id']).first_or_404()
-    return jsonify(id=todo.id,
+    todo = Todos.query.filter_by(id=id, user_id=session['user']['id']).first()
+    if todo:
+        return jsonify(id=todo.id,
                 user_id=todo.user_id,
                 description=todo.description)
+    else:
+        return jsonify({'msg': 'Could not find todo with given ID.'}), HTTP_NOT_FOUND
 
 
 @app.route('/todo/', defaults={'page_num': 1}, methods=['GET'])
